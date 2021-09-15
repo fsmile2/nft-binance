@@ -2,37 +2,24 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AlphaBanner from 'components/base/AlphaBanner';
 import MainHeader from 'components/base/MainHeader';
-import Landing from 'components/pages/Landing';
+import Explore from 'components/pages/Explore';
 import TernoaWallet from 'components/base/TernoaWallet';
 import NotAvailableModal from 'components/base/NotAvailable';
-
-import arrayShuffle from 'array-shuffle';
+import Footer from 'components/base/Footer';
+import FloatingHeader from 'components/base/FloatingHeader';
 import cookies from 'next-cookies';
 
-import { getUser, getUsers } from 'actions/user';
+import { getUser } from 'actions/user';
 import { getCategoryNFTs } from 'actions/nft';
 import { NftType, UserType } from 'interfaces';
 import { NextPageContext } from 'next';
 
-export interface LandingProps {
+export interface ExplorePage {
   user: UserType;
-  users: UserType[];
-  popularNfts: NftType[];
-  bestSellingNfts: NftType[];
-  betaNfts: NftType[];
-  NFTCreators: NftType[];
-  totalCountNFT: number;
+  data: NftType[];
 }
 
-const LandingPage: React.FC<LandingProps> = ({
-  user,
-  users,
-  popularNfts,
-  bestSellingNfts,
-  betaNfts,
-  NFTCreators,
-  totalCountNFT,
-}) => {
+const ExplorePage: React.FC<ExplorePage> = ({ user, data }) => {
   const [modalExpand, setModalExpand] = useState(false);
   const [notAvailable, setNotAvailable] = useState(false);
   const [walletUser, setWalletUser] = useState(user);
@@ -52,7 +39,7 @@ const LandingPage: React.FC<LandingProps> = ({
   return (
     <>
       <Head>
-        <title>SecretNFT - Welcome</title>
+        <title>SecretNFT - Explore</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         <meta name="description" content="SecretNFT Marketplace, by Ternoa." />
         <meta name="og:image" content="ternoa-social-banner.jpg" />
@@ -62,32 +49,17 @@ const LandingPage: React.FC<LandingProps> = ({
       {notAvailable && <NotAvailableModal setNotAvailable={setNotAvailable} />}
       <AlphaBanner />
       <MainHeader user={walletUser} setModalExpand={setModalExpand} />
-      <Landing
-        setModalExpand={setModalExpand}
-        setNotAvailable={setNotAvailable}
-        user={user}
-        users={users}
-        popularNfts={popularNfts}
-        bestSellingNfts={bestSellingNfts}
-        betaNfts={betaNfts}
-        NFTCreators={NFTCreators}
-        totalCountNFT={totalCountNFT}
-      />
+      <Explore NFTS={data} user={walletUser} setUser={setWalletUser} />
+      <Footer setNotAvailable={setNotAvailable} />
+      <FloatingHeader user={walletUser} setModalExpand={setModalExpand} />
     </>
   );
 };
+
 export async function getServerSideProps(ctx: NextPageContext) {
   const token = cookies(ctx).token;
-  // category code for beta testers NFTs
-  const BETA_CODE = '001';
-  let users: UserType[] = [], user: UserType | null = null, regularNfts: NftType[] = [], betaNfts: NftType[] = [];
+  let user: UserType | null = null, data : NftType[] = [];
   const promises = [];
-  promises.push(new Promise<void>((success) => {
-    getUsers().then(_users => {
-      users = _users
-      success();
-    }).catch(success);
-  }));
   if (token) {
     promises.push(new Promise<void>((success) => {
       getUser(token).then(_user => {
@@ -97,35 +69,15 @@ export async function getServerSideProps(ctx: NextPageContext) {
     }));
   }
   promises.push(new Promise<void>((success) => {
-    getCategoryNFTs().then(_regularNfts => {
-      regularNfts = _regularNfts
-      success();
-    }).catch(success);
-  }));
-  promises.push(new Promise<void>((success) => {
-    getCategoryNFTs(BETA_CODE).then(_betaNfts => {
-      betaNfts = _betaNfts
+    getCategoryNFTs().then(_nfts => {
+      data = _nfts
       success();
     }).catch(success);
   }));
   await Promise.all(promises);
-  users = arrayShuffle(users);
-  betaNfts = arrayShuffle(betaNfts || []).slice(0, 8);
-  let popularNfts = arrayShuffle((regularNfts || []).slice(0, 8));
-  let bestSellingNfts = arrayShuffle((regularNfts || []).slice(9, 17));
-  let NFTCreators = arrayShuffle((regularNfts || []).slice(18, 21));
-  let totalCountNFT = (regularNfts || []).length + (betaNfts || []).length;
   return {
-    props: {
-      user,
-      users,
-      popularNfts,
-      bestSellingNfts,
-      NFTCreators,
-      betaNfts,
-      totalCountNFT,
-    },
-  }
+    props: { user, data },
+  };
 }
 
-export default LandingPage;
+export default ExplorePage;
