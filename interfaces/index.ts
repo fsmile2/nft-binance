@@ -1,10 +1,56 @@
-// You can include shared interfaces/types in a separate file
-// and then use them in any component by importing them. For
-// example, to import the interface below do:
-//
-// import { User } from 'path/to/interfaces';
+export type UserType = {
+  _id: string;
+  name: string;
+  banner?: string;
+  bio?: string;
+  verified: boolean;
+  nbFollowers: number;
+  nbFollowing: number;
+  viewsCount?: number;
+  walletId: string;
+  picture?: string;
+  twitterName?: string;
+  customUrl?: string;
+  personalUrl?: string;
+  capsAmount?: string;
+  tiimeAmount?: string;
+  reviewRequested?:boolean
+  likedNFTs?: String[];
+};
 
-export type User = {
-  id: number
-  name: string
+export type NftType = {
+  id: string;
+  owner: string;
+  creator: string;
+  listed: number;
+  timeStampList?: string;
+  uri?: string;
+  price: string;
+  priceTiime: string;
+  name?: string;
+  description?: string;
+  media: { url: string };
+  cryptedMedia?: { url: string };
+  ownerData: UserType;
+  creatorData: UserType;
+  serieId: string;
+  itemTotal: string;
+  totalListedNft?: number;
+  totalNft?: number;
+  itemId: string;
+  categories: CategoryType[];
+  viewsCount?: number;
+};
+
+export type CategoryType = {
+  _id: string;
+  code: string;
+  name: string;
+  description?: string;
+}
+
+export type FollowType = {
+  _id: string;
+  followed: UserType;
+  follower: UserType;
 }
